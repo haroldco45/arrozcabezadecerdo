@@ -235,12 +235,12 @@
             </div>
 
             <div class="quantity-control">
-                <button class="btn-qty" onclick="changeQty(-1)">-</button>
+                <button class="btn-qty" id="btn-minus">-</button>
                 <span id="qty">1</span>
-                <button class="btn-qty" onclick="changeQty(1)">+</button>
+                <button class="btn-qty" id="btn-plus">+</button>
             </div>
 
-            <button class="btn-order" onclick="sendOrder()">
+            <button class="btn-order" id="btn-submit">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.457L0 24zm6.59-4.846c1.66.986 3.288 1.447 5.358 1.448 5.517 0 10.003-4.48 10.006-9.995.002-2.672-1.03-5.184-2.906-7.062C17.224 1.668 14.724 1.026 12.01 1.026 6.49 1.026 2.007 5.507 2.004 11.025c-.001 2.112.564 4.18 1.635 5.954l-.988 3.605 3.693-.969zm11.722-4.664c-.312-.156-1.844-.91-2.13-.1.015-.287-.156-.412-.365-.412-.208 0-.417.104-.521.26-.104.156-.416.416-.572.52-.156.104-.312.104-.624-.052-.312-.156-1.316-.485-2.507-1.548-.926-.826-1.55-1.846-1.732-2.158-.182-.312-.02-.48.136-.635.14-.14.312-.364.468-.546.156-.182.208-.312.312-.52.104-.208.052-.39-.026-.546-.078-.156-.624-1.503-.854-2.054-.226-.543-.454-.47-.624-.47-.16 0-.344-.017-.528-.017-.184 0-.485.068-.74.347-.253.28-1.04 1.016-1.04 2.479 0 1.462 1.064 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.844-.754 2.103-1.443.259-.688.259-1.277.182-1.404-.078-.126-.286-.208-.597-.364z"/></svg>
                 Pedir por WhatsApp
             </button>
@@ -248,20 +248,89 @@
     </div>
 
     <footer>
-        <p>&copy; Vibras Positivas. Todos los derechos reservados.</p>
+        <p>&copy; Vibras Positivas HM. Todos los derechos reservados.</p>
     </footer>
 
     <script>
-        let quantity = 1;
-        function changeQty(amount) {
-            quantity += amount;
-            if (quantity < 1) quantity = 1;
-            document.getElementById('qty').innerText = quantity;
+        // Inicialización segura de variables y listeners al cargar el DOM
+        document.addEventListener("DOMContentLoaded", () => {
+            let quantity = 1;
+            const qtyDisplay = document.getElementById('qty');
+            const btnMinus = document.getElementById('btn-minus');
+            const btnPlus = document.getElementById('btn-plus');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            // Funciones de cantidad
+            btnMinus.addEventListener('click', () => {
+                if (quantity > 1) {
+                    quantity--;
+                    qtyDisplay.innerText = quantity;
+                }
+            });
+
+            btnPlus.addEventListener('click', () => {
+                quantity++;
+                qtyDisplay.innerText = quantity;
+            });
+
+            // Función de envío de pedido
+            btnSubmit.addEventListener('click', () => {
+                const phone = "573145104768";
+                const pricePerUnit = 10000;
+                const total = quantity * pricePerUnit;
+                
+                const message = `👋 *¡Hola! Quiero hacer un pedido:* \n\n` +
+                                `🍛 *Producto:* Arroz de cabeza de cerdo con yuca cocida envuelto en hoja de viao\n` +
+                                `🔢 *Cantidad:* ${quantity} porción(es)\n` +
+                                `💰 *Valor Total:* $${total.toLocaleString('es-CO')}\n\n` +
+                                `📍 Por favor me confirman para darles la dirección de envío. ¡Gracias!`;
+                
+                const encodedMessage = encodeURIComponent(message);
+                window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+            });
+        });
+
+        // Registro del Service Worker controlado para entornos seguros de producción
+        if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'arroz-app-v3';
+                    self.addEventListener('install', (e) => {
+                        self.skipWaiting();
+                    });
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                    });
+                `;
+                const swBlob = new Blob([swCode], {type: 'application/javascript'});
+                const swURL = URL.createObjectURL(swBlob);
+                
+                navigator.serviceWorker.register(swURL)
+                    .then(() => console.log('PWA Lista'))
+                    .catch(err => console.log('SW Error:', err));
+            });
         }
 
-        function sendOrder() {
-            const phone = "573145104768";
-            const pricePerUnit = 10000;
-            const total = quantity * pricePerUnit;
-            
-            const message =
+        // Manejo del botón de instalación nativa
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-pwa');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+    </script>
+</body>
+</html>
