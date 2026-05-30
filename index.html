@@ -53,7 +53,7 @@
         .hero {
             background: linear-gradient(135deg, var(--secondary), var(--dark));
             color: white;
-            padding: 30px 20px;
+            padding: 25px 20px;
             text-align: center;
             position: relative;
         }
@@ -82,8 +82,23 @@
             font-weight: bold;
         }
 
+        /* Contenedor de la Imagen del Producto */
+        .product-image-container {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            background-color: #e0e0e0;
+        }
+
+        .product-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .content {
-            padding: 25px 20px;
+            padding: 20px;
             text-align: center;
         }
 
@@ -119,7 +134,7 @@
             font-size: 2.2rem;
             font-weight: 800;
             color: var(--dark);
-            margin: 15px 0;
+            margin: 10px 0 15px 0;
         }
 
         .price-tag span {
@@ -220,6 +235,10 @@
             <p>El auténtico sabor tradicional</p>
         </div>
 
+        <div class="product-image-container">
+            <img src="arrozcabeza.jpeg" alt="Arroz de Cabeza de Cerdo">
+        </div>
+
         <div class="content">
             <div class="product-details">
                 <h3>Arroz de Cabeza de Cerdo</h3>
@@ -252,7 +271,6 @@
     </footer>
 
     <script>
-        // Inicialización segura de variables y listeners al cargar el DOM
         document.addEventListener("DOMContentLoaded", () => {
             let quantity = 1;
             const qtyDisplay = document.getElementById('qty');
@@ -260,7 +278,6 @@
             const btnPlus = document.getElementById('btn-plus');
             const btnSubmit = document.getElementById('btn-submit');
 
-            // Funciones de cantidad
             btnMinus.addEventListener('click', () => {
                 if (quantity > 1) {
                     quantity--;
@@ -273,7 +290,6 @@
                 qtyDisplay.innerText = quantity;
             });
 
-            // Función de envío de pedido
             btnSubmit.addEventListener('click', () => {
                 const phone = "573145104768";
                 const pricePerUnit = 10000;
@@ -290,11 +306,10 @@
             });
         });
 
-        // Registro del Service Worker controlado para entornos seguros de producción
         if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
             window.addEventListener('load', () => {
                 const swCode = `
-                    const CACHE_NAME = 'arroz-app-v3';
+                    const CACHE_NAME = 'arroz-app-v4';
                     self.addEventListener('install', (e) => {
                         self.skipWaiting();
                     });
@@ -311,7 +326,6 @@
             });
         }
 
-        // Manejo del botón de instalación nativa
         let deferredPrompt;
         const installBtn = document.getElementById('install-pwa');
 
